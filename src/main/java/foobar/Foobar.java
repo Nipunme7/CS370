@@ -1,7 +1,5 @@
 package foobar;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 /**
  * Sample Java project
  * 
@@ -24,7 +22,25 @@ public class Foobar {
      * @return sum of all numbers (i.e. those not replaced) as a checksum
      */
     public int check(int n) {
-        // TODO: Implement this method
-        throw new NotImplementedException();
+        int sum = 0;
+        
+        for (int i = 1; i <= n; i++) {
+            if (i % 15 == 0) {
+                // Multiple of both 3 and 5
+                System.out.println("foobar");
+            } else if (i % 3 == 0) {
+                // Multiple of 3
+                System.out.println("foo");
+            } else if (i % 5 == 0) {
+                // Multiple of 5
+                System.out.println("bar");
+            } else {
+                // Not a multiple of 3 or 5, print the number and add to sum
+                System.out.println(i);
+                sum += i;
+            }
+        }
+        
+        return sum;
     }
 }
