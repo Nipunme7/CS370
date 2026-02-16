@@ -6,9 +6,82 @@
 
 % Define counters
 \newcount\thenumber
+\newcount\fbi
+\newcount\fbn
+\newcount\fbsum
+\newcount\fbtemp
+\newcount\fbtempb
 
 % Define command
 \newcommand{\foobar}[1]{%
+  \fbn=#1
+  \fbsum=0
+  \fbi=1
+  \loop
+    \ifnum\fbi>\fbn
+    \else
+      \fbtemp=\fbi
+      \fbtempb=\fbtemp
+      \divide\fbtempb by 15
+      \multiply\fbtempb by 15
+      \advance\fbtemp by -\fbtempb
+      \ifnum\fbtemp=0
+      \else
+        \fbtemp=\fbi
+        \fbtempb=\fbtemp
+        \divide\fbtempb by 3
+        \multiply\fbtempb by 3
+        \advance\fbtemp by -\fbtempb
+        \ifnum\fbtemp=0
+        \else
+          \fbtemp=\fbi
+          \fbtempb=\fbtemp
+          \divide\fbtempb by 5
+          \multiply\fbtempb by 5
+          \advance\fbtemp by -\fbtempb
+          \ifnum\fbtemp=0
+          \else
+            \advance\fbsum by \fbi
+          \fi
+        \fi
+      \fi
+      \advance\fbi by 1
+  \repeat
+  Checksum: \number\fbsum\par
+  \fbi=1
+  \loop
+    \ifnum\fbi>\fbn
+    \else
+      \fbtemp=\fbi
+      \fbtempb=\fbtemp
+      \divide\fbtempb by 15
+      \multiply\fbtempb by 15
+      \advance\fbtemp by -\fbtempb
+      \ifnum\fbtemp=0
+        FooBar\par
+      \else
+        \fbtemp=\fbi
+        \fbtempb=\fbtemp
+        \divide\fbtempb by 3
+        \multiply\fbtempb by 3
+        \advance\fbtemp by -\fbtempb
+        \ifnum\fbtemp=0
+          Foo\par
+        \else
+          \fbtemp=\fbi
+          \fbtempb=\fbtemp
+          \divide\fbtempb by 5
+          \multiply\fbtempb by 5
+          \advance\fbtemp by -\fbtempb
+          \ifnum\fbtemp=0
+            Bar\par
+          \else
+            \number\fbi\par
+          \fi
+        \fi
+      \fi
+      \advance\fbi by 1
+  \repeat
 }
 
 \begin{document}
