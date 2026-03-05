@@ -588,4 +588,4 @@ gradle-app.setting
 
 ### Include Lox source files
 !/src/main/lox/**/*
-!/data
+!/data/*
