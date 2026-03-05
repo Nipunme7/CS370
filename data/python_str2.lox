@@ -1,0 +1,2 @@
+var s2 = 'hello';
+print(s2);

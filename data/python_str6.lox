@@ -1,0 +1,2 @@
+var s6 = "he'llo";
+print(s6);

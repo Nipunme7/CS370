@@ -1,0 +1,2 @@
+var s4 = 'hello";
+print(s4);
