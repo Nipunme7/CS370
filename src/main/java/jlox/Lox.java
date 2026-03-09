@@ -46,6 +46,8 @@ public class Lox {
             String line = reader.readLine();
             if (line == null)
                 break;
+            if (line.trim().equals(":q"))
+                break;
             run(line);
             hadError = false;
         }
