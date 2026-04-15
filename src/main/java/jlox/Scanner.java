@@ -81,6 +81,12 @@ class Scanner {
             case '+':
                 addToken(PLUS);
                 break;
+            case '?':
+                addToken(QUESTION);
+                break;
+            case ':':
+                addToken(COLON);
+                break;
             case ';':
                 addToken(SEMICOLON);
                 break;
@@ -176,10 +182,6 @@ class Scanner {
 
         addToken(NUMBER,
                 Double.parseDouble(source.substring(start, current)));
-    }
-
-    private void string() {
-        string('"');
     }
 
     private void string(char quote) {

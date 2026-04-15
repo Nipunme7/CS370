@@ -32,7 +32,20 @@ class Parser {
     }
 
     private Expr expression() {
-        return assignment();
+        return ternary();
+    }
+
+    private Expr ternary() {
+        Expr expr = assignment();
+
+        if (match(QUESTION)) {
+            Expr thenBranch = expression();
+            consume(COLON, "Expect ':' after true branch of ternary expression.");
+            Expr elseBranch = ternary();
+            expr = new Expr.Ternary(expr, thenBranch, elseBranch);
+        }
+
+        return expr;
     }
 
     private Stmt declaration() {

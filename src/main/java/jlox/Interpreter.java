@@ -166,11 +166,11 @@ class Interpreter implements Expr.Visitor<Object>,
                     return (double) left + (double) right;
                 }
 
-                if (left instanceof String && right instanceof String) {
-                    return (String) left + (String) right;
+                if (left instanceof String || right instanceof String) {
+                    return stringify(left) + stringify(right);
                 }
                 throw new RuntimeError(expr.operator,
-                        "Operands must be two numbers or two strings.");
+                        "Operands must be two numbers or include a string.");
             case SLASH:
                 checkNumberOperands(expr.operator, left, right);
                 return (double) left / (double) right;
@@ -222,6 +222,14 @@ class Interpreter implements Expr.Visitor<Object>,
         }
 
         return evaluate(expr.right);
+    }
+
+    @Override
+    public Object visitTernaryExpr(Expr.Ternary expr) {
+        if (isTruthy(evaluate(expr.condition))) {
+            return evaluate(expr.thenBranch);
+        }
+        return evaluate(expr.elseBranch);
     }
 
     @Override
