@@ -16,6 +16,7 @@ class Interpreter implements Expr.Visitor<Object>,
     private Environment environment = globals;
 
     Interpreter() {
+        globals.define("List", new LoxListClass());
         globals.define("clock", new LoxCallable() {
             @Override
             public int arity() {
@@ -155,6 +156,15 @@ class Interpreter implements Expr.Visitor<Object>,
     }
 
     @Override
+    public Object visitArrayExpr(Expr.Array expr) {
+        ArrayList<Object> elements = new ArrayList<>();
+        for (Expr element : expr.elements) {
+            elements.add(evaluate(element));
+        }
+        return elements;
+    }
+
+    @Override
     public Object visitAssignExpr(Expr.Assign expr) {
         Object value = evaluate(expr.value);
         environment.assign(expr.name, value);
@@ -232,6 +242,9 @@ class Interpreter implements Expr.Visitor<Object>,
     @Override
     public Object visitGetExpr(Expr.Get expr) {
         Object object = evaluate(expr.object);
+        if (object instanceof LoxList) {
+            return ((LoxList) object).getProperty(expr.name);
+        }
         if (object instanceof LoxInstance) {
             return ((LoxInstance) object).get(expr.name, this);
         }
@@ -239,6 +252,32 @@ class Interpreter implements Expr.Visitor<Object>,
             return ((LoxClass) object).get(expr.name);
         }
         throw new RuntimeError(expr.name, "Only instances and classes have properties.");
+    }
+
+    @Override
+    public Object visitIndexExpr(Expr.Index expr) {
+        Object object = evaluate(expr.object);
+        Object index = evaluate(expr.index);
+
+        if (object instanceof LoxList) {
+            return ((LoxList) object).get(index, expr.bracket);
+        }
+
+        throw new RuntimeError(expr.bracket, "Only lists support indexing.");
+    }
+
+    @Override
+    public Object visitIndexSetExpr(Expr.IndexSet expr) {
+        Object object = evaluate(expr.object);
+        Object index = evaluate(expr.index);
+        Object value = evaluate(expr.value);
+
+        if (object instanceof LoxList) {
+            ((LoxList) object).set(index, value, expr.bracket);
+            return value;
+        }
+
+        throw new RuntimeError(expr.bracket, "Only lists support indexing.");
     }
 
     @Override
@@ -341,6 +380,10 @@ class Interpreter implements Expr.Visitor<Object>,
     private String stringify(Object object) {
         if (object == null)
             return "nil";
+
+        if (object instanceof LoxList) {
+            return object.toString();
+        }
 
         if (object instanceof Double) {
             String text = object.toString();
