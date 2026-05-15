@@ -16,7 +16,30 @@ class Interpreter implements Expr.Visitor<Object>,
     private Environment environment = globals;
 
     Interpreter() {
-        globals.define("List", new LoxListClass());
+        globals.define("List", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter,
+                    List<Object> arguments) {
+                if (!(arguments.get(0) instanceof ArrayList)) {
+                    throw new RuntimeError(
+                            new Token(TokenType.IDENTIFIER, "List", null, 0),
+                            "Expected array literal.");
+                }
+                @SuppressWarnings("unchecked")
+                ArrayList<Object> vals = (ArrayList<Object>) arguments.get(0);
+                return new LoxList(new ArrayList<>(vals));
+            }
+
+            @Override
+            public String toString() {
+                return "<class List>";
+            }
+        });
         globals.define("clock", new LoxCallable() {
             @Override
             public int arity() {
@@ -243,7 +266,69 @@ class Interpreter implements Expr.Visitor<Object>,
     public Object visitGetExpr(Expr.Get expr) {
         Object object = evaluate(expr.object);
         if (object instanceof LoxList) {
-            return ((LoxList) object).getProperty(expr.name);
+            LoxList list = (LoxList) object;
+            String name = expr.name.lexeme;
+            if (name.equals("size")) {
+                return new LoxCallable() {
+                    @Override
+                    public int arity() {
+                        return 0;
+                    }
+
+                    @Override
+                    public Object call(Interpreter interpreter,
+                            List<Object> arguments) {
+                        return (double) list.elems.size();
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "<native fn>";
+                    }
+                };
+            }
+            if (name.equals("append")) {
+                return new LoxCallable() {
+                    @Override
+                    public int arity() {
+                        return 1;
+                    }
+
+                    @Override
+                    public Object call(Interpreter interpreter,
+                            List<Object> arguments) {
+                        list.elems.add(arguments.get(0));
+                        return null;
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "<native fn>";
+                    }
+                };
+            }
+            if (name.equals("pop")) {
+                return new LoxCallable() {
+                    @Override
+                    public int arity() {
+                        return 0;
+                    }
+
+                    @Override
+                    public Object call(Interpreter interpreter,
+                            List<Object> arguments) {
+                        int n = list.elems.size();
+                        return list.elems.remove(n - 1);
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "<native fn>";
+                    }
+                };
+            }
+            throw new RuntimeError(expr.name,
+                    "Undefined property '" + name + "'.");
         }
         if (object instanceof LoxInstance) {
             return ((LoxInstance) object).get(expr.name, this);
@@ -260,24 +345,12 @@ class Interpreter implements Expr.Visitor<Object>,
         Object index = evaluate(expr.index);
 
         if (object instanceof LoxList) {
-            return ((LoxList) object).get(index, expr.bracket);
+            LoxList list = (LoxList) object;
+            int i = listIndex(list, index, expr.bracket);
+            return list.elems.get(i);
         }
 
-        throw new RuntimeError(expr.bracket, "Only lists support indexing.");
-    }
-
-    @Override
-    public Object visitIndexSetExpr(Expr.IndexSet expr) {
-        Object object = evaluate(expr.object);
-        Object index = evaluate(expr.index);
-        Object value = evaluate(expr.value);
-
-        if (object instanceof LoxList) {
-            ((LoxList) object).set(index, value, expr.bracket);
-            return value;
-        }
-
-        throw new RuntimeError(expr.bracket, "Only lists support indexing.");
+        throw new RuntimeError(expr.bracket, "Only lists have indexes.");
     }
 
     @Override
@@ -346,6 +419,19 @@ class Interpreter implements Expr.Visitor<Object>,
         return environment.get(expr.name);
     }
 
+    private int listIndex(LoxList list, Object indexObj, Token at) {
+        if (!(indexObj instanceof Double))
+            throw new RuntimeError(at, "Index must be a number.");
+
+        int i = (int) (double) indexObj;
+        if (i < 0)
+            i = list.elems.size() + i;
+        if (i < 0 || i >= list.elems.size())
+            throw new RuntimeError(at, "Index out of range.");
+
+        return i;
+    }
+
     private void checkNumberOperand(Token operator, Object operand) {
         if (operand instanceof Double)
             return;
@@ -382,7 +468,14 @@ class Interpreter implements Expr.Visitor<Object>,
             return "nil";
 
         if (object instanceof LoxList) {
-            return object.toString();
+            LoxList list = (LoxList) object;
+            String text = "[";
+            for (int i = 0; i < list.elems.size(); i++) {
+                if (i > 0)
+                    text += ", ";
+                text += stringify(list.elems.get(i));
+            }
+            return text + "]";
         }
 
         if (object instanceof Double) {

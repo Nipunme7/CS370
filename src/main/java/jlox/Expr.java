@@ -21,8 +21,6 @@ abstract class Expr {
 
     R visitIndexExpr(Index expr);
 
-    R visitIndexSetExpr(IndexSet expr);
-
     R visitGroupingExpr(Grouping expr);
 
     R visitLiteralExpr(Literal expr);
@@ -117,25 +115,6 @@ abstract class Expr {
     final Expr object;
     final Expr index;
     final Token bracket;
-  }
-
-  static class IndexSet extends Expr {
-    IndexSet(Expr object, Expr index, Token bracket, Expr value) {
-      this.object = object;
-      this.index = index;
-      this.bracket = bracket;
-      this.value = value;
-    }
-
-    @Override
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitIndexSetExpr(this);
-    }
-
-    final Expr object;
-    final Expr index;
-    final Token bracket;
-    final Expr value;
   }
 
   static class Get extends Expr {
